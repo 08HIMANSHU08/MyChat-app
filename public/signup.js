@@ -22,16 +22,19 @@ const passwordInput = document.getElementById('password');
         console.log(inputData);
         axios.post("http://localhost:3000/user/signup",inputData)
             .then((response)=>{
-                console.log(response)
+                // console.log(response)
                 if(response.request.status==201){
                 alert(response.data.message);
                 window.location.href="./login.html";
                 }
+                else{
+                    throw new Error ("Failed To SignUp, Try Again!")
+                }
             })
             .catch((err)=>{
-                console.log(err);
-                console.log(err.response.data.message);
-                document.body.innerHTML+=`<div style="color:red;">${err.response.data.message}<div>`; 
+                // console.log(err);
+                // console.log(err.response.data.message);
+                document.getElementById('error').innerHTML+=`<div style="color:red;">${err.response.data.message}<div>`; 
             })
             nameInput.value = '';
             emailInput.value='';
