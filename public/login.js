@@ -16,12 +16,13 @@ const passwordInput = document.getElementById('password');
         console.log(inputData);
         axios.post("http://localhost:3000/user/login",inputData)
             .then((response)=>{
-                // console.log(response)
+                console.log(response)
                 if(response.request.status==200){
                 alert(response.data.message);
                 // console.log(response.data.token);
                 localStorage.setItem('token',response.data.token);
-                window.location.href="./signup.html";
+                // localStorage.setItem('name',)
+                window.location.href="./mainpage.html";
                 }
                 else{
                     throw new Error ("Failed To Login, Try Again!")
