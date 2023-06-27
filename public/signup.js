@@ -30,10 +30,11 @@ const passwordInput = document.getElementById('password');
             })
             .catch((err)=>{
                 console.log(err);
-                console.log(err.response.data.error);
-                document.body.innerHTML+=`<div style="color:red;">${err.response.data.error}<div>`; 
+                console.log(err.response.data.message);
+                document.body.innerHTML+=`<div style="color:red;">${err.response.data.message}<div>`; 
             })
             nameInput.value = '';
             emailInput.value='';
-            passwordInput.value = '';  
+            numberInput.value = '';  
+            passwordInput.value = ''; 
     }

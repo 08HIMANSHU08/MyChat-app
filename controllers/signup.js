@@ -14,11 +14,11 @@ exports.postSignUp = async(req,res,next)=>{
     const t = await sequelize.transaction();
     try{
         const {name,email,number,password} = req.body;
-        console.log(req.body)
+        // console.log(req.body)
         const users = await User.findAll();
         for(let i=0;i<users.length;i++){
             if(users[i].email==email){
-                return res.status(400).json({message:"User Already Exist!",success:false});
+                return res.status(403).json({message:"User Already Exist!",success:false});
             }
         }
         if(isStringEmpty(name)||isStringEmpty(email)||isStringEmpty(password)){
@@ -28,12 +28,12 @@ exports.postSignUp = async(req,res,next)=>{
         bcrypt.hash(password,saltrounds,async(err,hash)=>{
             await User.create({name:name,email:email,number:number,password:hash},{transaction:t});
             await t.commit();
-            res.status(201).json({message:"Successfully created New User",success:true});
+            res.status(201).json({message:"New User Created",success:true});
         })
         
     }catch(err){
         await t.rollback();
-        console.log(err);
+        // console.log(err);
         res.status(500).json({message:err,success:false})
     }
 }
