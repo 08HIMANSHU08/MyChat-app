@@ -14,4 +14,5 @@ router.post('/login',loginController.postLogin);
 
 router.post('/message',msgAuth.authenticate,msgController.postMessage);
 
+router.get('/get-message',msgAuth.authenticate,msgController.getMessage);
 module.exports = router;
