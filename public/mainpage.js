@@ -5,30 +5,42 @@ const token = localStorage.getItem('token');
 
 
   window.addEventListener("DOMContentLoaded",()=>{
-    setInterval(()=>{
-        axios.get(`http://localhost:3000/user/get-message`,{headers:{"Authorization":token}})
-    .then((response)=>{
-        console.log(response)
-        // console.log(response)
-      showMessage(response.data.allMessage,response.data.user);
-    })
-      .catch((err)=>{console.error(err)});
-    },1000)
-  
-});
+    // setInterval(()=>{
+        let msg = JSON.parse(localStorage.getItem('message'));
+        // console.log(msg)
+        showMessage(msg);
+        // console.log(msg.length);
+        let msgid=0;
+        if(msg.length==0){
+            msgid=undefined;
+        }else{
+            msgid = msg[msg.length-1].id;
+        } 
+        axios.get(`http://localhost:3000/user/get-message?messageid=${msgid}`,{headers:{"Authorization":token}})
+            .then((response)=>{
+            console.log(response)
+            // console.log(response)
+            // showMessage(response.data.allMessage,response.data.user);
+            // showMessage(response.data.allMessage);
+            localStorage.setItem('message',JSON.stringify(response.data.allMessage));
+            })
+        .catch((err)=>{console.error(err)});
+            // },1000)
+    });
 
-function showMessage(message,user){
-    console.log(user)
+function showMessage(message){
+    // console.log("showMessage",message)
+    const username = localStorage.getItem('username')
     const parentitem=document.getElementById("listOfMessages");
     parentitem.innerHTML="";
     const childitem=document.createElement("li");
     childitem.className="list-group-item";
-    childitem.textContent=user+" Joined";
+    childitem.textContent=username+" Joined";
     parentitem.appendChild(childitem);
     for(let i=0;i<message.length;i++){
         const childitem=document.createElement("li");
         childitem.className="list-group-item";
-        childitem.textContent=user+" - "+message[i].message;
+        childitem.textContent=message[i].name+" - "+message[i].message;
         parentitem.appendChild(childitem);
     }
   }
@@ -53,9 +65,10 @@ document.getElementById("msgSent").onclick= async function(e){
         console.log(response)
         // if(response.request.status==200){
         // alert(response.data.message);
-        console.log(response.data.user);
+        // console.log(response.data.user);
         localStorage.setItem('token',response.data.token);
-        showMessage(response.data.newMessage,response.data.user);
+        // showMessage(response.data.newMessage);
+        // showMessage(response.data.newMessage,response.data.user);
         // localStorage.setItem('name',)
         // window.location.href="./mainpage.html";
         // }
