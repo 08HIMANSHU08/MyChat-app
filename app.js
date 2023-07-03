@@ -7,7 +7,9 @@ require('dotenv').config();
 const multer = require('multer');
 const upload = multer();
 const sequelize = require('./util/database');
-var CronJob = require('cron').CronJob;
+const CronJob = require('cron').CronJob;
+const http = require('http');
+const socketio = require('socket.io');
 
 const User = require('./models/user');
 const Message = require('./models/message');
@@ -18,6 +20,9 @@ const Files = require('./models/groupfiles');
 const Archieve = require('./models/archieve-chat');
 
 const app = express();
+const server = http.createServer(app);
+const io = socketio(server);  
+
 
 app.use(cors({
     origin : '*',
@@ -58,18 +63,34 @@ app.use('/', (req, res) => {
     res.sendFile(path.join(__dirname, `${req.url}`));
 });
 
+
 sequelize.sync()
     .then(() => {
-       app.listen(process.env.PORT)
-        console.log('port listining on 3000');
+        server.listen(process.env.PORT,()=>{
+            console.log('server is listening');
+        })
+    
+        io.on('connection',(socket) => {
+            console.log('user connected');
 
+            socket.on('send-message', (msg,id) => {
+                console.log('groupId :', id);
+                console.log('Received message:', msg);
+                io.emit('receivedMsg', id);
+            });
+            
+            socket.on('disconnect',()=>{
+                console.log('user disconnected');
+            });
+        })
+        
         new CronJob('0 0 * * *', async function() {
             const chats = await Message.findAll();
-            console.log('chats *********',chats);
+            console.log('per day chat',chats);
         
             for (const chat of chats) {
                 await Archieve.create({ groupId: chat.groupId, userId: chat.userId, message: chat.message });
-                console.log('id hai yaar',chat.id)
+                console.log('id',chat.id)
                 await Message.destroy({where:{id:chat.id}})
             }
             },
