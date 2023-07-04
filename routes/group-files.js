@@ -6,5 +6,4 @@ const authenticator = require('../middleware/auth');
 
 router.post('/filestored/:groupId',authenticator.authenticate,controller.downloadFiles);
 
-
 module.exports = router;
