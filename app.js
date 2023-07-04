@@ -15,7 +15,6 @@ const User = require('./models/user');
 const Message = require('./models/message');
 const Group = require('./models/group');
 const GroupUser = require('./models/groupUser');
-const Forgotpassword = require('./models/forgot-password');
 const Files = require('./models/groupfiles');
 const Archieve = require('./models/archieve-chat');
 
@@ -42,27 +41,22 @@ Message.belongsTo(Group);
 
 Group.hasMany(Files);
 
-User.hasMany(Forgotpassword);
-Forgotpassword.belongsTo(User);
 
 const userRoutes = require('./routes/user');
 const messageRoutes = require('./routes/message');
 const chatRoutes = require('./routes/chat');
 const adminRoutes = require('./routes/admin');
-const passwordRoutes = require('./routes/password');
 const fileRoutes = require('./routes/group-files');
 
 app.use('/user', userRoutes);
 app.use('/message', messageRoutes);
 app.use('/chat', chatRoutes);
 app.use('/admin', adminRoutes);
-app.use('/password', passwordRoutes);
 app.use('/file', upload.single('myfile'),fileRoutes);
 
 app.use('/', (req, res) => {
     res.sendFile(path.join(__dirname, `${req.url}`));
 });
-
 
 sequelize.sync()
     .then(() => {
@@ -74,8 +68,8 @@ sequelize.sync()
             console.log('user connected');
 
             socket.on('send-message', (msg,id) => {
-                console.log('groupId :', id);
-                console.log('Received message:', msg);
+                console.log('groupId :',id);
+                console.log('Received message:',msg);
                 io.emit('receivedMsg', id);
             });
             
@@ -86,7 +80,7 @@ sequelize.sync()
         
         new CronJob('0 0 * * *', async function() {
             const chats = await Message.findAll();
-            console.log('per day chat',chats);
+            console.log('daily chat',chats);
         
             for (const chat of chats) {
                 await Archieve.create({ groupId: chat.groupId, userId: chat.userId, message: chat.message });
