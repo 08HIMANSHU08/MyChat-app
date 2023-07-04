@@ -5,17 +5,12 @@ document.getElementById('group-name-form').onsubmit = async (e) => {
     try {
         const groupname = document.getElementById('groupname');
         const token = localStorage.getItem('token');
-        const res = await axios.post(`${baseUrl}/chat/nameTheGroup`, 
+        const res = await axios.post(`${baseUrl}/chat/nameTheGroup`,
             {groupname: groupname.value, groupid: sessionStorage.getItem('createdGroupId')},
-            {
-                headers: {
-                    'Authorization': token
-                } 
-            } 
-        );
-        console.log('naming grp response:', res);
+            {headers:{'Authorization': token}
+        });
         if(res.status === 200) {
-            confirm('Created New Group.');
+            alert('Created New Group.');
             window.location.href = 'chat.html';
         }
     } catch (error) {

@@ -18,24 +18,26 @@
                         <div class="card" style="border-radius: 15px;">
                             <div class="card-body p-5">
                                 <h2 class=" text-center mb-5 text-bg-light">Login Your Account</h2>
-                                <form id="my-form">
+                                <form id="loginform">
                                     <div class="form-outline mb-4">
-                                        <label class="form-label" for="email">Email</label>
-                                        <input type="email" id="email" class="form-control form-control-lg" required/>
+                                        <label class="form-label" for="emailField">Enter Email</label>
+                                        <input type="email" name="email" id="emailField" class="form-control form-control-lg" required/>
                                     </div>
                                     <div class="form-outline mb-4">
-                                        <label class="form-label" for="password">Password</label>
-                                        <input type="password" id="password" class="form-control form-control-lg" required/> 
+                                        <label class="form-label" for="passwordField">Enter Password</label>
+                                        <input type="password" name="password" id="passwordField" class="form-control form-control-lg" required/> 
                                     </div>
                                     <div class="d-flex justify-content-center">
-                                        <input class="btn btn-primary btn-block btn-lg gradient-custom-4 text-body" type="submit" value="Login">
+                                        <input class="btn btn-primary btn-block btn-lg gradient-custom-4 text-body m-2" type="submit" value="Login">
                                     </div>
                                     <p class="text-center text-muted mt-5 mb-0">Create a New Account
                                         <a href="./signup.html" class="fw-bold text-body">
                                             <u>SignUp</u>
                                         </a>
                                     </p>
-                                    <p id="error"></p>
+                                    <div class="container" id="error-container">
+                                        <p id="error-text"></p>
+                                    </div>
                                 </form>
                             </div>
                         </div>

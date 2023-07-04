@@ -1,38 +1,34 @@
-const myForm = document.getElementById('my-form');
+const forgotBtn = document.getElementById('fgt-btn');
+const loginForm = document.getElementById('loginform');
+const baseUrl = `http://localhost:3000`;
 
-const emailInput = document.getElementById('email');
-const passwordInput = document.getElementById('password');
+loginForm.onsubmit = async (e) => {
+    e.preventDefault();
 
-    myForm.addEventListener('submit', onSubmit);
-           
-    function onSubmit(e){
-        e.preventDefault();       
-        const email=emailInput.value;
-        const password=passwordInput.value;
-        const inputData={
-            email,
-            password,
-        };
-        console.log(inputData);
-        axios.post("http://localhost:3000/user/login",inputData)
-            .then((response)=>{
-                console.log(response)
-                if(response.request.status==200){
-                alert(response.data.message);
-                // console.log(response.data.token);
-                localStorage.setItem('token',response.data.token);
-                // localStorage.setItem('name',)
-                window.location.href="./mainpage.html";
-                }
-                else{
-                    throw new Error ("Failed To Login, Try Again!")
-                }
-            })
-            .catch((err)=>{
-                // console.log(err);
-                // console.log(err.response.data.message);
-                document.getElementById('error').innerHTML+=`<div style="color:red;">${err.response.data.message}<div>`; 
-            })
-            emailInput.value='';
-            passwordInput.value = ''; 
+    try {
+        const email = document.getElementById('emailField').value;
+        const password = document.getElementById('passwordField').value;
+
+        let res = await axios.post(`${baseUrl}/user/login`, {email, password});
+        console.log(res);
+        if(res.status === 200) {
+            email.value = '';
+            password.value = '';
+            console.log(res.data.token)
+            alert(res.data.message);
+            
+            localStorage.setItem('token',res.data.token);
+    
+            window.location.href = 'chat.html';
+        }   
+    } catch (error) {
+        console.log(error);
+        if(error.response.status === 401) {
+            document.getElementById('error-text').innerHTML+=`<div style="color:red;">${error.response.data.message}<div>`;
+        }
+        if(error.response.status === 404) {
+            document.getElementById('error-text').innerHTML+=`<div style="color:red;">${error.response.data.message}<div>`;
+        }
     }
+    
+};

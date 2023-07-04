@@ -1,43 +1,27 @@
-const myForm = document.getElementById('my-form');
+const baseUrl = `http://localhost:3000`;
 
-const nameInput = document.getElementById('name');
-const emailInput = document.getElementById('email');
-const numberInput  = document.getElementById('number');
-const passwordInput = document.getElementById('password');
+document.getElementById('signupform').onsubmit = async (e) => {
+    e.preventDefault();
 
-    myForm.addEventListener('submit', onSubmit);
-           
-    function onSubmit(e){
-        e.preventDefault();       
-        const name=nameInput.value;
-        const email=emailInput.value;
-        const number=numberInput.value;
-        const password=passwordInput.value;
-        const inputData={
-            name,
-            email,
-            number,
-            password,
-        };
-        console.log(inputData);
-        axios.post("http://localhost:3000/user/signup",inputData)
-            .then((response)=>{
-                // console.log(response)
-                if(response.request.status==201){
-                alert(response.data.message);
-                window.location.href="./login.html";
-                }
-                else{
-                    throw new Error ("Failed To SignUp, Try Again!")
-                }
-            })
-            .catch((err)=>{
-                // console.log(err);
-                // console.log(err.response.data.message);
-                document.getElementById('error').innerHTML+=`<div style="color:red;">${err.response.data.message}<div>`; 
-            })
-            nameInput.value = '';
-            emailInput.value='';
-            numberInput.value = '';  
-            passwordInput.value = ''; 
+    try {
+        const name = document.getElementById('nameField').value;
+        const email = document.getElementById('emailField').value;
+        const phone = document.getElementById('phoneField').value;
+        const password = document.getElementById('passwordField').value;
+        
+        let res = await axios.post(`${baseUrl}/user/signup`, {name, email, phone, password});
+        console.log(res);
+        if(res.status === 200) {
+            alert(res.data.message);
+            window.location.href = 'login.html';
+        }
+    } catch (error) {
+        console.log(error);
+        document.getElementById('error-text').innerHTML+=`<div style="color:red;">${error.response.data.message}<div>`; 
     }
+    document.getElementById('nameField').value="";
+    document.getElementById('emailField').value="";
+    document.getElementById('phoneField').value="";
+    document.getElementById('passwordField').value="";
+    
+};

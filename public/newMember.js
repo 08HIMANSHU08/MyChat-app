@@ -7,18 +7,12 @@ document.getElementById('add-member-form').onsubmit = async (e) => {
         const token = localStorage.getItem('token');
         const email = document.getElementById('email').value;
         let res = await axios.post(`${baseUrl}/admin/addUser`, 
-            {
-                groupId: groupId,
-                email: email
-            }, 
-            {
-                headers: {
-                    'Authorization': token
-                }
+            {groupId: groupId,email: email}, 
+            {headers: {'Authorization': token}
         });
-        console.log(res);
+        // console.log(res);
         if(res.status === 200) {
-            confirm(res.data.message);
+            alert(res.data.message);
             window.location.href = 'chat.html';
         }
     } catch (error) {

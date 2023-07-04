@@ -7,17 +7,14 @@ const closeMembersBtn = document.getElementById('close-members-btn');
 const membersUl = document.getElementById('members-ul');
 const baseUrl = `http://localhost:3000`;
 
-
 const socket = io(baseUrl);
 
 socket.on('connect', ()=>{
-    console.log('Server is Printing it to the client side',socket.id)
+    // console.log('Server is Printing it to the client side',socket.id)
 })
-const groupId = localStorage.getItem('groupId');
-    console.log(groupId)
-    socket.emit('joinRoom', groupId)
+
 socket.on('receivedMsg',(id)=>{
-  console.log(id)
+//   console.log(id)
   fetchMessagesAndShowToUser(id);
  });
 
@@ -30,19 +27,9 @@ chatForm.onsubmit = async (e) => {
         if(!groupId) {
             alert('Please select a group first.');
             return document.getElementById('message').value = '';
-          
         }
-        const res = await axios.post(`${baseUrl}/message/send`, 
-        {
-            message: message,
-            groupId: groupId
-        },
-        {
-            headers: {
-                'Authorization': token
-            }
-        });
-        console.log(message);
+        const res = await axios.post(`${baseUrl}/message/send`, {message: message,groupId: groupId},{headers: {'Authorization': token}});
+        // console.log(message);
         socket.emit("send-message",message,groupId)
         document.getElementById('message').value = '';
     } catch (error) {
@@ -53,9 +40,7 @@ chatForm.onsubmit = async (e) => {
 window.addEventListener('DOMContentLoaded', async () => {
     try {
         localStorage.removeItem('groupId');
-      
-            fetchGroupsAndShowToUser(); 
-     
+        fetchGroupsAndShowToUser(); 
     } catch (error) {
         console.log(error);
     }
@@ -63,59 +48,40 @@ window.addEventListener('DOMContentLoaded', async () => {
 
 const fileInput = document.getElementById('myfile');
 fileInput.addEventListener('input', handleSelectedFile = async(event) => {
-  try{
-      const file = event.target.files[0]; 
-      console.log('files**********',file);
+    try{
+        const file = event.target.files[0]; 
       
-      const formData = new FormData()
-      formData.append('myfile',file);
+        const formData = new FormData();
 
-      console.log('formData',formData.get('myfile'))
+        formData.append('myfile',file);
+        const groupId = localStorage.getItem('groupId');
+        // console.log('groupId',groupId)
 
-      const groupId = localStorage.getItem('groupId');
-      console.log('groupId',groupId)
-
-      const token = localStorage.getItem('token');
-      const fileStored = await axios.post(`http://localhost:3000/file/filestored/${groupId}`,formData,
-      {
-        headers: {
-            'Authorization': token
+        const token = localStorage.getItem('token');
+        const fileStored = await axios.post(`http://localhost:3000/file/filestored/${groupId}`,formData,{headers: {'Authorization': token}});
+        // console.log('fileurl',fileStored.data.message); 
+        socket.emit('send-message',fileStored.data.message,groupId);             
+        }catch(err){
+            console.log(err)
         }
-    });
+    })  
 
-      console.log('file name',fileStored.data.fileName);
-      console.log('duh',fileStored.data.msg.message); 
-
-      document.getElementById('text').value = fileStored.data.msg.message;  
-
-      socket.emit('message',fileStored.data.msg.message);             
-    }
-  catch(err){
-            document.getElementById('error').innerHTML = `Something went wrong`;
-    }
-  }
-)  
-
-async function fetchMessagesAndShowToUser(groupId) {
+async function fetchMessagesAndShowToUser(groupId){
     try {
-       
         let oldMessages = JSON.parse(localStorage.getItem('messages'));
         let lastMsgId;
         let messages;
         if(!oldMessages) {
-            console.log('no old messages');
+            // console.log('no old messages');
             oldMessages = [];
             lastMsgId = 0;
         }else {
             messages = oldMessages;
             lastMsgId = oldMessages[oldMessages.length - 1].id;
         }
-      
         const res = await axios.get(`${baseUrl}/message/fetchNewMsgs/?lastMsgId=${lastMsgId}&groupId=${groupId}`);
       
-        
         if(res.status === 200){
-           
             const newMessages = res.data.messages;
             messages = oldMessages.concat(newMessages);
             if(messages.length > 10){
@@ -143,38 +109,28 @@ function showChatToUser(messages) {
         chatul.innerHTML = '';
         messages.forEach((message) => {
             // chatBody.innerHTML += message.from+': '+ message.message + `<br>`;
-            chatul.innerHTML += `
-                <p>
-                    ${message.from}: ${message.message}
-                </p>
-            `;
-
+            chatul.innerHTML += `<li class="list-group-item">${message.from}:${message.message}</li>`;
         });
-    } catch (error) {
-        console.log(error);
+    } catch(error){
+        console.log("error in show chat to user",error);
     }
 }
 
-newGroupBtn.onclick = async (e) => {
-    window.location.href = 'createChat.html';
+newGroupBtn.onclick = async () => {
+    window.location.href='createChat.html';
 };
 
 async function fetchGroupsAndShowToUser() {
     try {
         const token = localStorage.getItem('token');
-        const res = await axios.get(`${baseUrl}/chat/getGroups`, {
-            headers: {
-                'Authorization': token
-            }
-        });
+        const res = await axios.get(`${baseUrl}/chat/getGroups`, { headers: {'Authorization': token}});
         // console.log('get groups response:', res);
         if(res.status === 200) {
-            // console.log("frontend np grp")
             const groups = res.data.groups;
             showGrouopsToUser(groups);
         }
     } catch (error) {
-        console.log(" catch error");
+        console.log("Error in fetch Groups And Show To User ");
         console.log(error);
     }
 }
@@ -204,13 +160,7 @@ chatList.onclick = async (e) => {
     e.preventDefault();
     try {
         e.target.classList.add('active');
-        const previousIntervalId = localStorage.getItem('intervalId');
-        if(previousIntervalId) {
-            clearInterval(previousIntervalId);
-        }
-    
         if(e.target.nodeName === 'BUTTON'){
-            // console.log(e.target.parentElement.children[0].id);
             const groupId = e.target.parentElement.children[0].id;
             sessionStorage.setItem('addToGroup', groupId);
             window.location.href = `newMember.html`;
@@ -218,19 +168,17 @@ chatList.onclick = async (e) => {
             const chatNameDiv = document.getElementById('open-chat');
             let groupId;
             if(e.target.nodeName === 'P'){
-                chatNameDiv.innerHTML = `<p><b>${e.target.innerText}</b></p>`;
+                chatNameDiv.innerHTML =`<p><b>${e.target.innerText}</p>`;
                 groupId = e.target.id;
             }else {
-                chatNameDiv.innerHTML = `<p><b>${e.target.children[0].innerText}</b></p>`;
+                chatNameDiv.innerHTML = `<p><b>${e.target.children[0].innerText}</p>`;
                 groupId = e.target.children[0].id;
             }
             await new Promise((resolve, reject) => {
                 localStorage.setItem('groupId', groupId);
                 resolve();
             });
-            // const intervalId = setInterval(() => {
-                fetchMessagesAndShowToUser(groupId);
-            // }, 1000);
+            fetchMessagesAndShowToUser(groupId);
         }
     } catch (error) {
         console.log(error);
@@ -241,7 +189,6 @@ openChat.onclick = (e) => {
     e.preventDefault();
     try {
         document.getElementById('members-list').classList.add('active');
-        // console.log('this is getting called');
         const groupId = localStorage.getItem('groupId');
         fetchMembersAndShowToUser(groupId);
     } catch (error) {
@@ -252,12 +199,8 @@ openChat.onclick = (e) => {
 async function fetchMembersAndShowToUser(groupId) {
     try {
         const token = localStorage.getItem('token');
-        const res = await axios.get(`${baseUrl}/chat/getMembers/?groupId=${groupId}`, {
-            headers: {
-                'Authorization': token
-            }
-        });
-        console.log('get members response:', res);
+        const res = await axios.get(`${baseUrl}/chat/getMembers/?groupId=${groupId}`,{headers: {'Authorization': token}});
+        // console.log('get members response:', res);
         if(res.status === 200) {
             const members = res.data.members;
             showMembersToUser(members);
@@ -292,11 +235,6 @@ function showMembersToUser(members) {
     }
 }
 
-// closeMembersBtn.onclick = (e) => {
-//     e.preventDefault();
-//     document.getElementById('members-list').classList.remove('active');
-// }
-
 membersUl.onclick = (e) => {
     e.preventDefault();
     try {
@@ -318,15 +256,10 @@ async function makeAdmin(idString) {
         const userId = idString.split('-')[1];
         const token = localStorage.getItem('token');
         const groupId = localStorage.getItem('groupId');
-        const res = await axios.put(`${baseUrl}/admin/makeAdmin`, {userId: userId, groupId: groupId}, {
-            headers: {
-                'Authorization': token
-            }
-        }); 
+        const res = await axios.put(`${baseUrl}/admin/makeAdmin`,{userId: userId, groupId: groupId},{headers: {'Authorization': token}}); 
         if(res.status === 200) {
-            console.log('setting admin response:', res);
-            console.log(res.data.message)
-            confirm(res.data.message);
+            // console.log(res.data.message)
+            alert(res.data.message);
             fetchMembersAndShowToUser(groupId);
         }
     } catch (error) {
@@ -342,16 +275,10 @@ async function removeMember(idString) {
         const userId = idString.split('-')[1];
         const token = localStorage.getItem('token');
         const groupId = localStorage.getItem('groupId');
-        let config = { 
-            headers: {
-                Authorization: token
-            },
-            data: {userId: userId, groupId: groupId}
-        }
+        let config = {headers: {Authorization: token},data: {userId: userId, groupId: groupId}}
         const res = await axios.delete(`${baseUrl}/admin/removeFromGroup`, config); 
         if(res.status === 200) {
-            console.log('removing user response:', res);
-            confirm(res.data.message);
+            alert(res.data.message);
             fetchMembersAndShowToUser(groupId);
         }
     } catch (error) {
@@ -367,14 +294,9 @@ async function removeAdminPermission(idString) {
         const userId = idString.split('-')[1];
         const token = localStorage.getItem('token');
         const groupId = localStorage.getItem('groupId');
-        const res = await axios.put(`${baseUrl}/admin/removeAdmin`, {userId: userId, groupId: groupId}, {
-            headers: {
-                'Authorization': token
-            }
-        }); 
+        const res = await axios.put(`${baseUrl}/admin/removeAdmin`, {userId: userId, groupId: groupId}, {headers: {'Authorization': token}}); 
         if(res.status === 200) {
-            console.log('remove admin response:', res);
-            confirm(res.data.message);
+            alert(res.data.message);
             fetchMembersAndShowToUser(groupId);
         }
     } catch (error) {
