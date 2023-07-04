@@ -1,67 +1,61 @@
+const Message = require('../models/message');
+const Group = require('../models/group');
+const GroupUser = require('../models/groupUser');
+const { Op } = require("sequelize");
 
-const Message = require('../models/messages');
-const User = require('../models/user');
-const sequelize = require('../util/database');
-const jwt = require('jsonwebtoken');
-const {Sequelize} = require('sequelize');
 
-function generateAccessToken(id,name){
-    // console.log(id,"wkefjrhkfwherifhuiywefiuh")
-    return jwt.sign({userId:id,name:name},process.env.TOKEN_SECRET);
+function isValidMessage(message) {
+    if(typeof message === 'string' && message.length > 0){
+        return true;
+    } else {
+        return false;
+    }
 }
 
-exports.getMessage = async(req,res,next)=>{
-    try{
-        // console.log(req.query.messageid)
-        const msgId = req.query.messageid;
-        // console.log("kjhdefwer",msgId)
-        if(msgId==undefined || msgId==null){
-            // console.log("kjhdefwer",msgId)
-            const message = await Message.findAll();
-            // console.log("qkjwehfhwqerhfiqheoiurh3iuo4ruewfuheou",message.length)
-            // const user = await User.findByPk(req.user.id);
-            res.status(200).json({allMessage:message,success:true});
-        }
-        else{
-            // console.log(msgId)
-            const message = await Message.findAll();
-            // console.log("all message",message[0]);
-            // console.log("new message",newmessage)
-            // message.push(newmessage);
-            // console.log("allmessage",message)
-            // const user = await User.findByPk(req.user.id);
-            const message10 = [];
-            let msgcount=0;
-            for(let i=message.length-1;i>=0;i--){
-                if(msgcount==10)
-                    break;
-                message10.unshift(message[i]);
-                msgcount++;
-                // console.log(message[i])
+exports.saveMessage = async (req, res, next) => {
+    try {
+        const message = req.body.message;
+        const groupId = req.body.groupId;
+        console.log(message);
+        if(isValidMessage(message)){
+            const groupUser = await GroupUser.findOne({where: {
+                groupId: groupId,
+                userId: req.user.id
+            }});
+            if(!groupUser) {
+                throw new Error('user not found in group');
             }
-            // console.log('10 message',message10)
-            res.status(200).json({allMessage:message10,success:true});
-        }  
-    }catch(err){
-        console.log('get Msg is failed',JSON.stringify(err))
-        res.status(500).json({error:err,success:false})
+            await req.user.createMessage({
+                message: message,
+                groupId: groupId,
+                from: req.user.name
+            });
+            res.status(200).json({message: 'msg saved to database'});
+        } else {
+            throw new Error('invalid message format');
+        }
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({message: 'something went wrong'});
+    }
+};
+
+exports.fetchNewMessages = async (req, res, next) => {
+    try {
+        const lastMsgId = +req.query.lastMsgId;
+        const groupId = +req.query.groupId;
+        // console.log('msg id in backend:', lastMsgId);
+        // console.log('grp id in backend to fetch msg:', groupId);
+        const messages = await Message.findAll({where: {id:  {[Op.gt]: lastMsgId}}});
+
+        if(messages.length > 0) {
+            res.status(200).json({messages: messages});
+        } else {
+            res.status(201).json({message: 'no new messages'});
+        }
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({message: 'could not fetch messages'});
     }
 }
 
-exports.postMessage = async(req,res,next)=>{
-    const t = await sequelize.transaction();
-    try{
-        // console.log(req.body);
-        const {message,username} = req.body;
-        const data = await Message.create({message:message,name:username,userId:req.user.id},{transaction:t});
-        // console.log(data.userId);
-        // const user = await User.findByPk(data.userId);
-        // console.log(user);
-        await t.commit();
-        res.status(200).json({newMessage:[data],token:generateAccessToken(data.userId,data.name)});
-        
-    }catch(err){
-        await t.rollback();
-        res.status(500).json({success:false,error:"err"})
-    }
-}

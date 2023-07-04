@@ -12,7 +12,12 @@ exports.addParticipant = async (req, res, next) => {
             return res.status(204).json({message: 'email is not registered'})
         }
         const newGroup = await req.user.createGroup();
-        
+        await newGroup.addUser(req.user, {
+            through: {isAdmin: true}
+        });
+        await newGroup.addUser(user, {
+            through: {isAdmin: false}
+        });
         res.status(200).json({group: newGroup, message: 'added new user to group'});
     } catch (error) {
         console.log(error);
@@ -42,7 +47,7 @@ exports.getGroups = async (req, res, next) => {
     try {
         // console.log("not found",req.user)
         const groups = await req.user.getGroups();
-        console.log(groups)
+        // console.log(groups)
         if(groups.length === 0) {
             return res.status(201).json({message: 'no groups currently'});
         }
@@ -66,7 +71,7 @@ exports.getMembers = async (req, res, next) => {
             if(user) {
                 let newPart = {};
                 const userInGroupUser = await GroupUser.findOne({where: {[Op.and]: [{userId: user.id}, {groupId: groupId}]}});
-                
+                newPart['isAdmin'] = userInGroupUser.isAdmin;
                 const userToSend = {
                     ...user,
                     ...newPart

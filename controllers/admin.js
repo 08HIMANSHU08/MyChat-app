@@ -8,7 +8,7 @@ exports.addUser = async (req, res, next) => {
     try {
         const groupId = req.body.groupId;
         const email = req.body.email;
-        // console.log(email);
+       
         const userToBeAdded = await User.findOne({where: {email: email}});
         if(!userToBeAdded) {
             return res.status(400).json({message: 'Member to be Added is not Registered'});
@@ -18,9 +18,7 @@ exports.addUser = async (req, res, next) => {
             return res.status(403).json({message: 'you dont have permissions'});
         };
         const group = await Group.findByPk(groupId);
-        await group.addUser(userToBeAdded, {
-            through: {isAdmin: false}
-        });
+        await group.addUser(userToBeAdded, {through: {isAdmin: false}});
         res.status(200).json({message: `${userToBeAdded.name} Added to Group`});
     } catch (error) {
         console.log(error);
@@ -31,15 +29,15 @@ exports.addUser = async (req, res, next) => {
 exports.makeAdmin = async (req, res, next) => {
     try {
         const userIdToBeMadeAdmin = req.body.userId;
-        // console.log(userIdToBeMadeAdmin)
+        
         const groupId = req.body.groupId;
-        // console.log("group id",groupId)
+        
         const user = await User.findByPk(userIdToBeMadeAdmin);
         if(!user) {
             return res.status(400).json({message: 'Member to be Added is Not Registered'});
         }
         const verifiedAdmin = await GroupUser.findOne({where: {[Op.and]: [{userId: req.user.id}, {isAdmin: false}, {groupId: groupId}]}});
-        // console.log(verifiedAdmin,"verifiedadmin")
+        
         if(!verifiedAdmin){
             return res.status(403).json({message: 'You Do Not Have Permission'});
         };
