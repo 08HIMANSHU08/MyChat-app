@@ -10,7 +10,6 @@ const StoredFile = sequelize.define('file',{
     },
     
    url:Sequelize.STRING
-
 });
 
 module.exports = StoredFile;
